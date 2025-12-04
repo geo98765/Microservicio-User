@@ -1,4 +1,5 @@
 package com.example.user_service.config;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import com.example.user_service.service.CustomUserDetailsService;
+
 /**
  * Security configuration for the application
  * Configura autenticación HTTP Basic y autorización basada en roles
@@ -23,10 +25,12 @@ import com.example.user_service.service.CustomUserDetailsService;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
+
     // Constructor manual para evitar problemas con Lombok en algunos IDEs
     public SecurityConfig(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
+
     /**
      * Configura la cadena de filtros de seguridad
      * Define qué rutas son públicas y cuáles requieren autenticación/autorización
@@ -46,6 +50,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/users/login").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api-docs/**").permitAll()
+
+                        // ============= ENDPOINTS INTERNOS PARA MICROSERVICIOS =============
+                        // Estos endpoints NO requieren autenticación para comunicación interna
+                        // Usados por graphql-profile-service y otros microservicios
+                        .requestMatchers("/api/v1/users/*/exists").permitAll()
+                        .requestMatchers("/api/v1/users/internal/**").permitAll()
+
                         // ============= USUARIOS =============
                         // Obtener usuario por ID - solo el propio usuario o admin
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/{userId}").authenticated()
@@ -80,6 +91,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         return http.build();
     }
+
     /**
      * Configura el proveedor de autenticación DAO
      * Usa CustomUserDetailsService y BCrypt para autenticación
@@ -91,6 +103,7 @@ public class SecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
+
     /**
      * Bean del AuthenticationManager para autenticación programática
      */
@@ -99,6 +112,7 @@ public class SecurityConfig {
             AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
+
     /**
      * Codificador de contraseñas usando BCrypt
      */

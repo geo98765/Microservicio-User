@@ -18,4 +18,23 @@ public interface UserService {
     UserResponse updateProfile(Integer userId, UpdateProfileRequest request);
 
     UserResponse getUserById(Integer userId);
+
+    /**
+     * Verifica si un usuario existe en el sistema
+     * Usado por otros microservicios
+     */
+    boolean userExists(Integer userId);
+
+    /**
+     * Obtiene un usuario por ID SIN validar permisos
+     * SOLO para comunicación INTERNA entre microservicios
+     * NO usar desde endpoints públicos
+     */
+    UserResponse getUserByIdInternal(Integer userId);
+
+    /**
+     * Obtiene un usuario por email
+     * Usado para autenticación en graphql-service
+     */
+    UserResponse getUserByEmail(String email);
 }

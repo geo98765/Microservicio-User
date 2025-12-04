@@ -370,4 +370,57 @@ public class UserServiceImpl implements UserService {
         location.setState(parts[1].trim());
         location.setCountry(parts[2].trim());
     }
+
+    /**
+     * Verifica si un usuario existe en el sistema
+     * Método para comunicación entre microservicios
+     */
+    @Override
+    public boolean userExists(Integer userId) {
+        log.debug("🔍 [INTERNAL] Checking existence of user ID: {}", userId);
+        boolean exists = userRepository.existsById(userId);
+        log.debug("🔍 [INTERNAL] User {} exists: {}", userId, exists);
+        return exists;
+    }
+
+    /**
+     * Obtiene un usuario por ID SIN validar permisos
+     * SOLO para comunicación INTERNA entre microservicios
+     * 
+     * Este método NO valida que el usuario autenticado tenga permisos
+     * Es usado por graphql-profile-service para obtener datos de usuarios
+     */
+    @Override
+    public UserResponse getUserByIdInternal(Integer userId) {
+        log.info("🔗 [INTERNAL] Fetching user by ID (NO permission check): {}", userId);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", userId);
+                    return new EntityNotFoundException(
+                            String.format("User not found with id: '%s'", userId));
+                });
+
+        log.info("✅ [INTERNAL] User fetched successfully: {}", user.getEmail());
+        return userMapper.toResponse(user);
+    }
+
+    /**
+     * Obtiene un usuario por email
+     * Usado para autenticación en graphql-service
+     */
+    @Override
+    public UserResponse getUserByEmail(String email) {
+        log.info("🔐 [INTERNAL] Fetching user by email for authentication: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("User not found with email: {}", email);
+                    return new EntityNotFoundException(
+                            String.format("User not found with email: '%s'", email));
+                });
+
+        log.info("✅ [INTERNAL] User fetched by email successfully: {}", email);
+        return userMapper.toResponse(user);
+    }
 }
