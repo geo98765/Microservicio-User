@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException; // Import adde
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.user_service.dto.AddFavoriteGenreRequest;
@@ -363,7 +364,7 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
         return userPreferenceRepository.save(preference);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     protected UserPreference createDefaultPreferenceTransactional(Profile profile) {
         return createDefaultPreference(profile);
     }
