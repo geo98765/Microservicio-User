@@ -76,6 +76,9 @@ public class SecurityConfig {
                         // ============= MUSIC GENRES (PÚBLICO) =============
                         // Catálogo de géneros es público para que usuarios puedan explorar
                         .requestMatchers(HttpMethod.GET, "/api/v1/genres/**").permitAll()
+                        // ============= COMMENTS (AZURE AI) =============
+                        // Endpoints de análisis de comentarios - requieren autenticación
+                        .requestMatchers("/api/v1/comments/**").authenticated()
                         // ============= USER PREFERENCES =============
                         // Solo el usuario propietario puede gestionar sus preferencias
                         .requestMatchers("/api/v1/users/*/preferences/**").authenticated()

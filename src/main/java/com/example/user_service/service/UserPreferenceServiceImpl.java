@@ -92,9 +92,17 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
         validateUserOwnership(userId);
         Profile profile = getProfileByUserId(userId);
 
+        // Buscar preferencias existentes
         UserPreference preference = userPreferenceRepository
                 .findByProfileProfileId(profile.getProfileId())
-                .orElseGet(() -> createDefaultPreferenceTransactional(profile));
+                .orElse(null);
+
+        // ✅ Si no existen, usar valores por defecto SIN persistir
+        if (preference == null) {
+            log.info("⚠️ No preferences found for profile: {}, returning defaults without persisting",
+                    profile.getProfileId());
+            preference = buildDefaultPreference(profile);
+        }
 
         if (includeFullLists) {
             return buildPreferenceResponse(profile, preference);
@@ -352,9 +360,24 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
                 .orElseGet(() -> createDefaultPreference(profile));
     }
 
-    private UserPreference createDefaultPreference(Profile profile) {
-        log.info("Creating default preferences for profile: {}", profile.getProfileId());
+    /**
+     * Creates a default preference object WITHOUT persisting it to the database.
+     * Used for returning default values when no preference exists yet.
+     */
+    private UserPreference buildDefaultPreference(Profile profile) {
+        return UserPreference.builder()
+                .userPreferenceId(null) // null indica que no está persistido
+                .profile(profile)
+                .searchRadius(DEFAULT_SEARCH_RADIUS)
+                .emailNotifications(true)
+                .build();
+    }
 
+    /**
+     * Creates and persists a default preference to the database.
+     * Used when we need to ensure a preference exists.
+     */
+    private UserPreference createDefaultPreference(Profile profile) {
         UserPreference preference = UserPreference.builder()
                 .profile(profile)
                 .searchRadius(DEFAULT_SEARCH_RADIUS)
@@ -362,11 +385,6 @@ public class UserPreferenceServiceImpl implements UserPreferenceService {
                 .build();
 
         return userPreferenceRepository.save(preference);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    protected UserPreference createDefaultPreferenceTransactional(Profile profile) {
-        return createDefaultPreference(profile);
     }
 
     private UserPreferenceResponse buildPreferenceResponse(Profile profile, UserPreference preference) {
