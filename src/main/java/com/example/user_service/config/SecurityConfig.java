@@ -45,6 +45,10 @@ public class SecurityConfig {
                 // Configurar autorización de requests
                 .authorizeHttpRequests(auth -> auth
                         // ============= RUTAS PÚBLICAS =============
+                        // Actuator endpoints para health checks (UptimeRobot, monitoring, etc.)
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                        .requestMatchers("/actuator/info").permitAll()
+
                         // Registro y documentación Swagger
                         .requestMatchers("/api/v1/users/register/**").permitAll()
                         .requestMatchers("/api/v1/users/login").permitAll()
